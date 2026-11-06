@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="笔画猜猜猜">
+  <meta name="theme-color" content="#2c3e50">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>笔画猜猜猜 / 汉字版 Hangman</title>
+</head>
+<body>
+  <main id="app">
+    <h1>笔画猜猜猜 / 汉字版 Hangman</h1>
+
+    <canvas id="hangman-canvas" aria-label="错误次数图示"></canvas>
+
+    <section id="slots" class="slots" aria-label="笔画槽位"></section>
+
+    <div class="status-row" aria-live="polite">
+      <span id="wrong-count" class="wrong-text">猜错次数: 0/6</span>
+      <span id="stroke-count" class="muted-text">共 0 笔</span>
+    </div>
+
+    <p id="hint-line" class="hint-text">拼音首字母: ?</p>
+
+    <section id="keyboard" class="keyboard" aria-label="笔画键盘"></section>
+
+    <p class="legend">按钮上的两个笔画名，本游戏不区分</p>
+
+    <div class="actions">
+      <button id="hint-button" class="action-button hint-button" type="button">显示提示</button>
+      <button id="new-game-button" class="action-button new-game-button" type="button">开始新游戏</button>
+    </div>
+  </main>
+
+  <dialog id="result-dialog" aria-labelledby="result-title">
+    <div class="dialog-content">
+      <h2 id="result-title"></h2>
+      <div id="result-character" class="result-character"></div>
+      <p id="result-strokes" class="result-strokes"></p>
+      <h3>例句:</h3>
+      <p id="result-sentence" class="result-sentence"></p>
+      <div class="dialog-actions">
+        <button id="again-button" class="action-button new-game-button" type="button">再来一局</button>
+        <button id="close-button" class="action-button" type="button">关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
