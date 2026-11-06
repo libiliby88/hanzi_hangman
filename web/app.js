@@ -1,9 +1,18 @@
-import { createRound, guessStroke, MAX_WRONG, showHint } from "./game.js";
+import {
+  createRound,
+  guessStroke,
+  MAX_WRONG,
+  showHint,
+  visibleStrokeIndices,
+} from "./game.js";
+import { STROKE_GLYPHS } from "./strokes.js";
 
 const TEXT = "#ecf0f1";
 
 const canvas = document.querySelector("#hangman-canvas");
 const canvasContext = canvas.getContext("2d");
+const characterPanel = document.querySelector("#character-panel");
+const characterStrokes = document.querySelector("#character-strokes");
 const slotsElement = document.querySelector("#slots");
 const wrongCountElement = document.querySelector("#wrong-count");
 const strokeCountElement = document.querySelector("#stroke-count");
@@ -20,10 +29,13 @@ const againButton = document.querySelector("#again-button");
 const closeButton = document.querySelector("#close-button");
 
 let data = null;
+let graphics = null;
 let round = null;
 let roundId = 0;
 const flashTimers = new Map();
 const strokeButtons = new Map();
+let strokeFlashTimer = null;
+let highlightedStrokeIndex = null;
 
 function drawCanvas() {
   if (!round) {
@@ -91,10 +103,20 @@ function renderSlots() {
     const number = document.createElement("span");
     number.className = "slot-number";
     number.textContent = index + 1;
-    const strokeName = document.createElement("span");
-    strokeName.className = "slot-stroke";
-    strokeName.textContent = round.revealed[index] ? stroke : "?";
-    slot.append(number, strokeName);
+    if (round.revealed[index]) {
+      const glyph = document.createElement("span");
+      glyph.className = "stroke-glyph slot-glyph";
+      glyph.textContent = STROKE_GLYPHS[stroke];
+      const strokeName = document.createElement("span");
+      strokeName.className = "slot-stroke";
+      strokeName.textContent = stroke;
+      slot.append(number, glyph, strokeName);
+    } else {
+      const hiddenStroke = document.createElement("span");
+      hiddenStroke.className = "slot-stroke";
+      hiddenStroke.textContent = "?";
+      slot.append(number, hiddenStroke);
+    }
     slotsElement.append(slot);
   });
 }
@@ -105,9 +127,34 @@ function renderStatus() {
   hintLineElement.textContent = `拼音首字母: ${round.hintShown ? round.target.initial : "?"}`;
 }
 
+function renderCharacter() {
+  const outlines = graphics?.[round.target.character];
+  if (!Array.isArray(outlines) || outlines.length !== round.strokes.length) {
+    characterPanel.hidden = true;
+    characterStrokes.replaceChildren();
+    return;
+  }
+
+  characterPanel.hidden = false;
+  characterStrokes.replaceChildren();
+  const visible = new Set(visibleStrokeIndices(round));
+  round.strokes.forEach((stroke, index) => {
+    if (!visible.has(index) || typeof outlines[index] !== "string" || !outlines[index]) {
+      return;
+    }
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", outlines[index]);
+    path.style.fill = index === highlightedStrokeIndex
+      ? "var(--correct)"
+      : "var(--text)";
+    characterStrokes.append(path);
+  });
+}
+
 function render() {
   renderSlots();
   renderStatus();
+  renderCharacter();
   drawCanvas();
 }
 
@@ -136,6 +183,26 @@ function cancelFlashes() {
   flashTimers.forEach((timer) => window.clearTimeout(timer));
   flashTimers.clear();
   strokeButtons.forEach((button) => button.classList.remove("flash-correct", "flash-wrong"));
+  if (strokeFlashTimer !== null) {
+    window.clearTimeout(strokeFlashTimer);
+    strokeFlashTimer = null;
+  }
+  highlightedStrokeIndex = null;
+}
+
+function flashStroke(index) {
+  if (strokeFlashTimer !== null) {
+    window.clearTimeout(strokeFlashTimer);
+  }
+  highlightedStrokeIndex = index;
+  const currentRoundId = roundId;
+  strokeFlashTimer = window.setTimeout(() => {
+    strokeFlashTimer = null;
+    if (currentRoundId === roundId) {
+      highlightedStrokeIndex = null;
+      renderCharacter();
+    }
+  }, 250);
 }
 
 function startNewGame() {
@@ -151,6 +218,9 @@ function guess(name) {
   }
   const result = guessStroke(round, name);
   flashButton(name, result.hit);
+  if (result.hit && result.revealedIndex !== null) {
+    flashStroke(result.revealedIndex);
+  }
   render();
   if (result.finished) {
     showResultDialog(result.finished === "won");
@@ -187,7 +257,16 @@ function showResultDialog(won) {
     : "(暂无例句)";
   resultTitle.textContent = won ? "恭喜!" : "游戏结束";
   resultCharacter.textContent = round.target.character;
-  resultStrokes.textContent = `笔顺: ${round.strokes.join(" ")}`;
+  resultStrokes.replaceChildren(document.createTextNode("笔顺: "));
+  round.strokes.forEach((stroke, index) => {
+    if (index > 0) {
+      resultStrokes.append(document.createTextNode("  "));
+    }
+    const glyph = document.createElement("span");
+    glyph.className = "stroke-glyph result-stroke-glyph";
+    glyph.textContent = STROKE_GLYPHS[stroke];
+    resultStrokes.append(glyph, document.createTextNode(` ${stroke}`));
+  });
   appendHighlightedSentence(sentence, round.target.character);
   if (typeof resultDialog.showModal === "function") {
     resultDialog.showModal();
@@ -211,7 +290,16 @@ function createKeyboard() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "stroke-button";
-    button.textContent = entry.alt ? `${entry.name}\n${entry.alt}` : entry.name;
+    const glyphs = [entry.name, entry.alt]
+      .filter(Boolean)
+      .map((name) => STROKE_GLYPHS[name]);
+    const glyph = document.createElement("span");
+    glyph.className = "stroke-glyph stroke-button-glyph";
+    glyph.textContent = [...new Set(glyphs)].join(" / ");
+    const names = document.createElement("span");
+    names.className = "stroke-button-name";
+    names.textContent = entry.alt ? `${entry.name}\n${entry.alt}` : entry.name;
+    button.append(glyph, names);
     button.setAttribute("aria-label", entry.alt ? `${entry.name}、${entry.alt}` : entry.name);
     button.addEventListener("click", () => guess(entry.name));
     keyboardElement.append(button);
@@ -221,13 +309,28 @@ function createKeyboard() {
 
 async function loadData() {
   try {
-    const response = await fetch("../hanzi_data.json");
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    const dataResponse = await fetch("../hanzi_data.json");
+    if (!dataResponse.ok) {
+      throw new Error(`HTTP ${dataResponse.status}`);
     }
-    data = await response.json();
+    data = await dataResponse.json();
     createKeyboard();
     startNewGame();
+
+    fetch("../hanzi_graphics.json")
+      .then((graphicsResponse) => {
+        if (!graphicsResponse.ok) {
+          throw new Error(`HTTP ${graphicsResponse.status}`);
+        }
+        return graphicsResponse.json();
+      })
+      .then((loadedGraphics) => {
+        graphics = loadedGraphics;
+        renderCharacter();
+      })
+      .catch((error) => {
+        console.warn("Optional hanzi_graphics.json unavailable", error);
+      });
   } catch (error) {
     document.querySelector("#app").replaceChildren(
       Object.assign(document.createElement("p"), {

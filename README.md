@@ -7,6 +7,7 @@
 - 深色主题的图形用户界面
 - 根据错误次数逐步绘制六部分 hangman
 - 按笔顺显示汉字的笔画槽位，重复笔画需要重复猜测
+- 猜对的笔画会在汉字的实际位置逐笔显现
 - 24 个笔画按钮，包含六组无法区分的笔画别名
 - 显示拼音首字母提示
 - 结果窗口显示完整笔顺，并在例句中高亮目标汉字
@@ -62,5 +63,10 @@ python -m http.server
   https://cdn.jsdelivr.net/npm/cnchar-order@latest/cnchar.order.min.js
 - Tatoeba 中文例句数据（CC-BY 2.0 FR，按许可证要求提供署名）：
   https://downloads.tatoeba.org/exports/per_language/cmn/cmn_sentences.tsv.bz2
+- Noto Sans CJK SC 2.004 笔画图形子集（SIL Open Font License 1.1）：
+  https://github.com/notofonts/noto-cjk/releases/tag/Sans2.004
+- hanzi-writer-data 2.0.1（源自 Make Me a Hanzi / Arphic 字体，ARPHIC PUBLIC LICENSE）：
+  https://www.npmjs.com/package/hanzi-writer-data
+  许可证：`ARPHICPL.txt`
 
 数据中的六组笔画无法由底层笔顺来源可靠区分，因此游戏将它们分别作为同一个可猜笔画处理：横撇/横钩、竖折/竖弯、斜钩/卧钩、横折折/横折弯、横折折折钩/横撇弯钩、竖折撇/竖折折。

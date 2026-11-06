@@ -16,7 +16,14 @@
   <main id="app">
     <h1>笔画猜猜猜 / 汉字版 Hangman</h1>
 
-    <canvas id="hangman-canvas" aria-label="错误次数图示"></canvas>
+    <div class="drawing-row">
+      <canvas id="hangman-canvas" aria-label="错误次数图示"></canvas>
+      <section id="character-panel" class="character-panel" aria-label="汉字笔画图形" hidden>
+        <svg id="character-svg" viewBox="0 0 1024 1024" role="img" aria-label="逐步显示的汉字">
+          <g id="character-strokes" transform="scale(1, -1) translate(0, -900)"></g>
+        </svg>
+      </section>
+    </div>
 
     <section id="slots" class="slots" aria-label="笔画槽位"></section>
 

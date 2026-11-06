@@ -1,14 +1,17 @@
-const CACHE_NAME = "hanzi-hangman-v1";
+const CACHE_NAME = "hanzi-hangman-v3";
 const PRECACHE_URLS = [
   "./",
   "index.html",
   "styles.css",
   "app.js",
   "game.js",
+  "strokes.js",
   "manifest.webmanifest",
+  "fonts/hanzi-strokes.woff2",
   "icons/icon-180.png",
   "icons/icon-512.png",
   "../hanzi_data.json",
+  "../hanzi_graphics.json",
 ];
 
 self.addEventListener("install", (event) => {

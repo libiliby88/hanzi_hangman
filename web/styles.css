@@ -13,6 +13,13 @@
   --font-stack: "PingFang SC", "Heiti SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 
+@font-face {
+  font-family: "HanziStrokes";
+  src: url("fonts/hanzi-strokes.woff2") format("woff2");
+  font-display: block;
+  unicode-range: U+31C0-31E3;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -72,16 +79,37 @@ h1 {
   line-height: 1.25;
 }
 
-#hangman-canvas {
-  display: block;
-  width: min(40vh, 260px);
-  width: min(40dvh, 260px);
-  height: min(40vh, 260px);
-  height: min(40dvh, 260px);
-  aspect-ratio: 1;
+.drawing-row {
+  --drawing-size: min(40vh, 260px, calc((100vw - 34px) / 2));
+  --drawing-size: min(40dvh, 260px, calc((100vw - 34px) / 2));
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: min(100%, calc(var(--drawing-size) * 2 + 10px));
   margin: 0 auto 8px;
+}
+
+#hangman-canvas,
+.character-panel {
+  display: block;
+  flex: 0 1 var(--drawing-size);
+  width: var(--drawing-size);
+  height: var(--drawing-size);
+  max-width: 260px;
+  min-width: 0;
+  aspect-ratio: 1;
   border-radius: 4px;
   background: var(--canvas-background);
+}
+
+.character-panel {
+  overflow: hidden;
+}
+
+#character-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .slots {
@@ -171,6 +199,36 @@ h1 {
   white-space: pre-line;
 }
 
+.stroke-glyph {
+  font-family: "HanziStrokes", var(--font-stack);
+}
+
+.stroke-button-glyph {
+  display: block;
+  min-height: 1.35em;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.stroke-button-name {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.75rem;
+  line-height: 1.15;
+  white-space: pre-line;
+}
+
+.slot-glyph {
+  display: block;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.result-stroke-glyph {
+  font-size: 1.4rem;
+  vertical-align: -0.15em;
+}
+
 .stroke-button:active {
   background: var(--button-active);
 }
@@ -186,6 +244,65 @@ h1 {
 .legend {
   margin: 3px 0 8px;
   font-size: 0.75rem;
+}
+
+.stroke-sheet-page {
+  width: min(100%, 900px);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  text-align: center;
+}
+
+.stroke-sheet-intro {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.stroke-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+}
+
+.stroke-card {
+  position: relative;
+  min-height: 132px;
+  padding: 12px 6px 9px;
+  border-radius: 6px;
+  background: var(--canvas-background);
+}
+
+.stroke-card-number {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.stroke-card-glyph {
+  min-height: 3.2rem;
+  color: var(--text);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.stroke-card-names {
+  min-height: 2.4em;
+  margin-top: 7px;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.stroke-card-codepoints {
+  margin-top: 6px;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
 }
 
 .actions,
@@ -288,10 +405,15 @@ dialog::backdrop {
     font-size: 1.25rem;
   }
 
-  #hangman-canvas {
-    width: min(32dvh, 200px);
-    height: min(32dvh, 200px);
-    margin-bottom: 4px;
+  .drawing-row {
+    --drawing-size: min(32vh, 200px, calc((100vw - 28px) / 2));
+    --drawing-size: min(32dvh, 200px, calc((100vw - 28px) / 2));
+    gap: 4px;
+  }
+
+  #hangman-canvas,
+  .character-panel {
+    max-width: 200px;
   }
 
   .slots {
@@ -313,6 +435,18 @@ dialog::backdrop {
 
   .stroke-button {
     min-height: 44px;
+  }
+
+  .stroke-button-glyph {
+    font-size: 1.35rem;
+  }
+
+  .stroke-button-name {
+    font-size: 0.68rem;
+  }
+
+  .slot-glyph {
+    font-size: 1.35rem;
   }
 
   .legend {

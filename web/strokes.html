@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="stylesheet" href="styles.css">
+  <title>笔画图形表</title>
+</head>
+<body>
+  <main class="stroke-sheet-page">
+    <h1>笔画图形表</h1>
+    <p class="stroke-sheet-intro">按游戏键盘顺序显示笔画图形、名称和 Unicode 编码。</p>
+    <section id="stroke-sheet" class="stroke-sheet" aria-label="笔画图形表"></section>
+  </main>
+  <script type="module">
+    import { STROKE_GLYPHS } from "./strokes.js";
+
+    const sheet = document.querySelector("#stroke-sheet");
+    const codepoint = (glyph) => `U+${glyph.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}`;
+
+    async function renderSheet() {
+      try {
+        const response = await fetch("../hanzi_data.json");
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        data.stroke_palette.forEach((entry, index) => {
+          const card = document.createElement("article");
+          card.className = "stroke-card";
+
+          const glyphNames = [entry.name, entry.alt]
+            .filter(Boolean)
+            .map((name) => STROKE_GLYPHS[name]);
+          const glyphs = [...new Set(glyphNames)];
+          const glyph = document.createElement("div");
+          glyph.className = "stroke-glyph stroke-card-glyph";
+          glyph.textContent = glyphs.join(" / ");
+
+          const names = document.createElement("div");
+          names.className = "stroke-card-names";
+          names.textContent = entry.alt ? `${entry.name} / ${entry.alt}` : entry.name;
+
+          const codepoints = document.createElement("div");
+          codepoints.className = "stroke-card-codepoints";
+          codepoints.textContent = glyphs.map(codepoint).join(" / ");
+
+          const number = document.createElement("div");
+          number.className = "stroke-card-number";
+          number.textContent = index + 1;
+          card.append(number, glyph, names, codepoints);
+          sheet.append(card);
+        });
+      } catch (error) {
+        sheet.textContent = `数据加载失败: ${error.message}`;
+      }
+    }
+
+    renderSheet();
+  </script>
+</body>
+</html>

@@ -14,6 +14,13 @@ export function createRound(characters, rng = Math.random) {
   };
 }
 
+export function visibleStrokeIndices(round) {
+  return round.revealed.reduce(
+    (indices, isRevealed, index) => (isRevealed ? [...indices, index] : indices),
+    [],
+  );
+}
+
 export function guessStroke(round, name) {
   if (round.gameOver) {
     return { hit: false, revealedIndex: null, finished: null };
